@@ -4,7 +4,8 @@ setup(
     name="rea-titan",
     version="1.0.0",
     description="Next-Gen Reverse Engineering Suite combining REA Agent Protocol and Headless Ghidra",
-    author="Murat & Tris",
+    author="tunaproducts & Tris",
+    url="https://github.com/tunaproducts/rea-titan",
     packages=find_packages(),
     install_requires=[
         "click>=8.0.0",
