@@ -9,10 +9,12 @@ from rea_titan.bridge.dynamic_frida import FridaHookGenerator
 from rea_titan.bridge.mcp_server import run_mcp_server
 from rea_titan.bridge.pwntools_gen import PwntoolsHarnessGenerator
 from rea_titan.config import ANALYZE_HEADLESS, GHIDRA_HOME
+from rea_titan.core.assistant import ReverseEngineeringCopilot
 from rea_titan.core.auditor import SecurityAuditor
 from rea_titan.core.binary import BinaryTriage
 from rea_titan.core.disasm import FastDisassembler
 from rea_titan.core.entropy import EntropyScanner
+from rea_titan.core.license_audit import LicenseAndAntiTamperAuditor
 from rea_titan.core.mitigations import MitigationsChecker
 from rea_titan.core.rop import ROPGadgetScanner
 from rea_titan.core.signatures import SignatureDetector
@@ -145,6 +147,41 @@ def disasm(binary_path: str, offset: str, count: int):
     console.print(f"[bold yellow]Disassembly at {offset}:[/bold yellow]")
     for i in insns[:count]:
         console.print(f"  [cyan]{i['address']}[/cyan]: [bold white]{i['mnemonic']:<8}[/bold white] {i['op_str']:<25} [italic dark_gray]; {i['bytes']}[/italic dark_gray]")
+
+
+@cli.command()
+@click.argument("binary_path", type=click.Path(exists=True))
+def keys(binary_path: str):
+    """Audit license key verification flow, anti-tamper, and anti-debugging."""
+    print_banner()
+    auditor = LicenseAndAntiTamperAuditor(binary_path)
+    res = auditor.full_audit()
+
+    ad = res["anti_debugging"]
+    kv = res["key_verification"]
+
+    console.print(f"[bold cyan]Key Verification Architecture:[/bold cyan] [bold yellow]{kv['validation_architecture']}[/bold yellow]")
+    if kv["validation_indicators"]:
+        console.print(f"[bold green]Discovered Key Indicators:[/bold green] {', '.join(kv['validation_indicators'])}")
+    if kv["comparison_apis_used"]:
+        console.print(f"[bold green]Comparison APIs Used:[/bold green] {', '.join(kv['comparison_apis_used'])}")
+
+    console.print(f"\n[bold cyan]Timing-Attack Leak Risk:[/bold cyan] {'[bold red]YES (Vulnerable)[/bold red]' if kv['timing_attack_vulnerability']['vulnerable'] else '[bold green]NO[/bold green]'}")
+    console.print(f"[italic]{kv['timing_attack_vulnerability']['reason']}[/italic]")
+
+    console.print(f"\n[bold cyan]Anti-Debugging Mechanisms:[/bold cyan] {ad['anti_debug_mechanisms_count']} detected.")
+    for m in ad["mechanisms"]:
+        console.print(f"  • [bold yellow]{m['api']}[/bold yellow] ({m['platform']}): {m['technique']}")
+        console.print(f"    ↳ [italic green]Bypass:[/italic green] {m['bypass_strategy']}")
+
+
+@cli.command()
+@click.argument("binary_path", type=click.Path(exists=True))
+def copilot(binary_path: str):
+    """Launch interactive AI Reverse Engineering Copilot session."""
+    print_banner()
+    c = ReverseEngineeringCopilot(binary_path)
+    c.interactive_session()
 
 
 @cli.command()
