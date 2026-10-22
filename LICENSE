@@ -1,21 +1,39 @@
-MIT License
+ETHICAL RESEARCH & DEFENSIVE SECURITY LICENSE (TITAN-ETHICS-1.0)
+Based on the MIT License with Anti-Harm and Responsible Disclosure Covenants.
 
-Copyright (c) 2026 Murat & Tris
+Copyright (c) 2026 Murat & Tris (REA-TITAN Project)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
 to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+furnished to do so, subject to the following MANDATORY CONDITIONS:
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+1. ETHICAL AND AUTHORIZED USE ONLY:
+   The Software MUST be used strictly for authorized security research, educational
+   analysis, vulnerability assessment, defensive engineering, firmware auditing, and
+   authorized reverse-engineering activities where explicit permission has been granted
+   by the system, software, or asset owner.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+2. PROHIBITION OF MALICIOUS INTENT:
+   Under no circumstances shall the Software or any derivative work be used for:
+   a) Unauthorized cyber intrusions, attacks, or unlawful access to computing assets.
+   b) Deployment or weaponization of malware, ransomware, or disruptive payloads.
+   c) Any activity that violates domestic or international cybersecurity laws, regulations,
+      or privacy rights.
+
+3. RESPONSIBLE DISCLOSURE COVENANT:
+   Any zero-day vulnerability, credential exposure, or architectural weakness identified
+   using this Software must be handled under coordinated and responsible vulnerability
+   disclosure guidelines, affording vendors reasonable time to remediate issues before
+   public dissemination.
+
+4. DISCLAIMER OF LIABILITY:
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   SOFTWARE.

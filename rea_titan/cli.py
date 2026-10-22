@@ -9,9 +9,12 @@ from rea_titan.bridge.dynamic_frida import FridaHookGenerator
 from rea_titan.bridge.mcp_server import run_mcp_server
 from rea_titan.bridge.pwntools_gen import PwntoolsHarnessGenerator
 from rea_titan.config import ANALYZE_HEADLESS, GHIDRA_HOME
+from rea_titan.core.auditor import SecurityAuditor
 from rea_titan.core.binary import BinaryTriage
+from rea_titan.core.disasm import FastDisassembler
 from rea_titan.core.entropy import EntropyScanner
 from rea_titan.core.mitigations import MitigationsChecker
+from rea_titan.core.rop import ROPGadgetScanner
 from rea_titan.core.signatures import SignatureDetector
 from rea_titan.core.strings import StringMiner
 from rea_titan.ghidra.headless import GhidraHeadlessEngine
@@ -23,6 +26,7 @@ from rea_titan.tui.console import (
     print_mitigations_table,
     print_triage_panel,
 )
+from rea_titan.tui.hexview import render_hexdump
 
 
 @click.group()
@@ -112,6 +116,65 @@ def crypto(binary_path: str):
 
 @cli.command()
 @click.argument("binary_path", type=click.Path(exists=True))
+def audit(binary_path: str):
+    """Audit binary for dangerous C APIs, buffer overflows, and unsafe functions."""
+    print_banner()
+    auditor = SecurityAuditor(binary_path)
+    res = auditor.audit_apis()
+
+    console.print(f"[bold cyan]Security Posture Score:[/bold cyan] [bold green]{res['vulnerability_score']}[/bold green]")
+    console.print(f"[bold cyan]Total Insecure API Findings:[/bold cyan] {res['findings_count']}\n")
+
+    for f in res["findings"]:
+        color = "bold red" if f["severity"] == "CRITICAL" else "yellow" if f["severity"] == "HIGH" else "cyan"
+        console.print(f"[{color}][{f['severity']}][/{color}] [bold white]{f['function']}[/bold white]: {f['description']}")
+        console.print(f"   [italic green]Remediation:[/italic green] {f['remediation']}\n")
+
+
+@cli.command()
+@click.argument("binary_path", type=click.Path(exists=True))
+@click.option("--offset", default="0x1000", help="Hex offset to disassemble from")
+@click.option("--count", default=25, help="Number of instructions to disassemble")
+def disasm(binary_path: str, offset: str, count: int):
+    """Fast native disassembly with Capstone."""
+    print_banner()
+    off = int(offset, 16) if offset.startswith("0x") or offset.startswith("0X") else int(offset)
+    d = FastDisassembler()
+    insns = d.disassemble_file_offset(binary_path, offset=off, length=count * 8, base_address=off)
+
+    console.print(f"[bold yellow]Disassembly at {offset}:[/bold yellow]")
+    for i in insns[:count]:
+        console.print(f"  [cyan]{i['address']}[/cyan]: [bold white]{i['mnemonic']:<8}[/bold white] {i['op_str']:<25} [italic dark_gray]; {i['bytes']}[/italic dark_gray]")
+
+
+@cli.command()
+@click.argument("binary_path", type=click.Path(exists=True))
+def rop(binary_path: str):
+    """Scan for ROP gadgets to evaluate exploitation mitigation resilience."""
+    print_banner()
+    scanner = ROPGadgetScanner(binary_path)
+    res = scanner.scan_gadgets()
+
+    console.print(f"[bold cyan]Discovered ROP Gadgets:[/bold cyan] {res['total_gadgets_found']}\n")
+    for g in res["gadgets"]:
+        console.print(f"  [cyan]{g['address']}[/cyan]: [bold green]{g['gadget']}[/bold green]")
+    console.print(f"\n[italic cyan]{res['defensive_note']}[/italic cyan]")
+
+
+@cli.command()
+@click.argument("binary_path", type=click.Path(exists=True))
+@click.option("--offset", default="0x0", help="Hex offset to view")
+@click.option("--length", default=256, help="Bytes length to dump")
+def hex(binary_path: str, offset: str, length: int):
+    """Display interactive colorized hexdump of target binary."""
+    print_banner()
+    off = int(offset, 16) if offset.startswith("0x") or offset.startswith("0X") else int(offset)
+    table = render_hexdump(binary_path, offset=off, length=length)
+    console.print(table)
+
+
+@cli.command()
+@click.argument("binary_path", type=click.Path(exists=True))
 @click.option("--func", default=None, help="Filter specific function name to print")
 @click.option("--out", default=None, help="Save decompiled JSON output to file")
 def decompile(binary_path: str, func: str | None, out: str | None):
@@ -140,7 +203,6 @@ def decompile(binary_path: str, func: str | None, out: str | None):
             if not matched:
                 console.print(f"[yellow]Function '{func}' not found in decompiled output.[/yellow]")
         else:
-            # Display sample of first 3 decompiled functions
             for f in functions[:3]:
                 print_decompiled_code(f["name"], f["decompiled_code"])
             if len(functions) > 3:
@@ -183,7 +245,7 @@ def mcp():
 @click.argument("binary_path", type=click.Path(exists=True))
 @click.option("--report", default="titan_report.md", help="Output markdown report file")
 def auto(binary_path: str, report: str):
-    """Full-auto autonomous RE pipeline: Triage, Entropy, Strings, Checksec, Crypto & Decompilation."""
+    """Full-auto autonomous RE pipeline: Triage, Entropy, Strings, Checksec, Crypto, Audit & Decompilation."""
     print_banner()
     console.print(f"[bold green]Starting Full-Auto RE Pipeline on:[/bold green] {binary_path}")
 
@@ -192,6 +254,7 @@ def auto(binary_path: str, report: str):
     s = StringMiner(binary_path).mine_secrets_and_endpoints()
     m = MitigationsChecker(binary_path).analyze()
     c = SignatureDetector(binary_path).scan()
+    a = SecurityAuditor(binary_path).audit_apis()
 
     print_triage_panel(t)
     print_mitigations_table(m)
@@ -203,6 +266,7 @@ def auto(binary_path: str, report: str):
 **File Size:** {t.get('size_human')}  
 **Format:** {t.get('format')} ({t.get('machine', 'Unknown')})  
 **Entry Point:** `{t.get('entry_point', '-')}`  
+**Security Posture Score:** {a.get('vulnerability_score')}  
 
 ---
 
@@ -213,12 +277,20 @@ def auto(binary_path: str, report: str):
 - **RELRO:** {m.get('relro', '-')}
 - **Stripped:** {'Yes' if m.get('symbols_stripped') else 'No'}
 
-## 2. Entropy & Packing Analysis
+## 2. Insecure API & Vulnerability Audit
+- **Security Score:** {a.get('vulnerability_score')}
+- **Findings Count:** {a.get('findings_count')}
+"""
+    for finding in a.get("findings", []):
+        md_content += f"- **[{finding['severity']}] `{finding['function']}`**: {finding['description']}\n  - *Remediation:* {finding['remediation']}\n"
+
+    md_content += f"""
+## 3. Entropy & Packing Analysis
 - **Overall Entropy:** {e.get('overall_entropy')} / 8.0
 - **Is Packed / Encrypted:** {'YES' if e.get('is_packed_or_encrypted') else 'NO'}
 - **Analysis:** {e.get('recommendation')}
 
-## 3. Cryptographic Signatures & Packers
+## 4. Cryptographic Signatures & Packers
 - **Crypto Constants Found:** {len(c.get('crypto_algorithms', []))}
 """
     for algo in c.get('crypto_algorithms', []):
@@ -227,7 +299,7 @@ def auto(binary_path: str, report: str):
     md_content += f"""
 - **Compilers / Packers Detected:** {', '.join(c.get('packers_and_compilers', [])) or 'None'}
 
-## 4. Interesting Strings & Endpoints
+## 5. Interesting Strings & Endpoints
 - **Total Strings:** {s.get('total_strings_count')}
 - **Discovered URLs:** {len(s.get('urls', []))}
 """

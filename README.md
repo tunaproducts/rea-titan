@@ -80,22 +80,58 @@ rea-titan decompile /path/to/binary --out decompiled.json
 rea-titan decompile /path/to/binary --func verify_license
 ```
 
-### 7. Dynamic Instrumentation (Frida)
+### 7. Güvenlik ve Tehlikeli C API Denetimi (Audit)
+```bash
+rea-titan audit /path/to/binary
+```
+*Tüm libc çağrılarını tarar; `gets`, `strcpy`, `sprintf`, `system` gibi zafiyet kaynağı fonksiyonları risk derecelerine (CRITICAL, HIGH, MEDIUM) ve iyileştirme tavsiyelerine göre puanlar.*
+
+### 8. Capstone Hızlı Disassembly
+```bash
+rea-titan disasm /path/to/binary --offset 0x1000 --count 20
+```
+
+### 9. ROP Gadget Taraması (Savunma & Mitigasyon Testi)
+```bash
+rea-titan rop /path/to/binary
+```
+*Bellek korumalarının (ASLR/PIE, Intel CET, Shadow Stack) etkinliğini doğrulamak için `ret`, `pop rdi`, `syscall` gadget'larını listeler.*
+
+### 10. İnteraktif Renkli Hexdump
+```bash
+rea-titan hex /path/to/binary --offset 0x0 --length 128
+```
+
+### 11. Dinamik Enstrümantasyon (Frida Hook)
 ```bash
 rea-titan frida target_binary 0x1234 --args-count 4
 ```
 
-### 8. Full-Auto Autonomous RE Pipeline
-Runs triage, mitigations, entropy, crypto, strings, and compiles an executive markdown report:
+### 12. Pwntools Güvenlik Koşum İskeleti
 ```bash
-rea-titan auto target_binary --report analysis_report.md
+rea-titan pwn /path/to/binary
 ```
 
-### 9. AI Agent MCP Server Mode
-Integrate REA-TITAN into Cursor, Claude Desktop, or custom LLM agents:
+### 13. Full-Auto Otonom RE & Güvenlik Raporu
+Triage, Checksec, Entropi, Kripto İmzaları, Stringler, API Güvenlik Skoru ve Zafiyet Analizini birleştirip tam teşekküllü bir Markdown denetim raporu üretir:
+```bash
+rea-titan auto target_binary --report guvenlik_analiz_raporu.md
+```
+
+### 14. Yapay Zeka Ajanları için MCP Sunucusu (Model Context Protocol)
+Cursor, Claude Desktop, Antigravity veya özel LLM ajanlarına tersine mühendislik yetenekleri bağlar:
 ```bash
 rea-titan mcp
 ```
+
+---
+
+## ⚖️ Etik Araştırma ve Sorumlu Kullanım Sözleşmesi (Ethical Covenant)
+
+Bu proje **TITAN-ETHICS-1.0** lisansı altında dağıtılmaktadır. 
+- Yalnızca izinli güvenlik testleri, savunma mühendisliği, firmware denetimi, akademik araştırma ve kötü amaçlı yazılım analizleri için kullanılabilir.
+- Yetkisiz sistem sızmaları, zararlı yazılım geliştirme veya yasa dışı faaliyetlerde kullanılması kesinlikle yasaktır ve lisans ihlali teşkil eder.
+- Tespit edilen sıfır-gün (0-day) açıkları satıcıya sorumlu açıklama (Responsible Disclosure) ilkeleri doğrultusunda bildirilmelidir.
 
 Add to your `mcp_config.json`:
 ```json

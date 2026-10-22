@@ -95,6 +95,41 @@ TOOLS_METADATA = [
             "required": ["binary_name", "target_func"],
         },
     },
+    {
+        "name": "titan_audit_vulnerabilities",
+        "description": "Audits binary for dangerous C standard library APIs (gets, strcpy, sprintf, system) and insecure functions.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "filepath": {"type": "string", "description": "Absolute path to the binary."}
+            },
+            "required": ["filepath"],
+        },
+    },
+    {
+        "name": "titan_scan_rop_gadgets",
+        "description": "Scans binary for common ROP gadgets to evaluate exploitation mitigation resilience.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "filepath": {"type": "string", "description": "Absolute path to the binary."}
+            },
+            "required": ["filepath"],
+        },
+    },
+    {
+        "name": "titan_disassemble_offset",
+        "description": "Performs fast Capstone disassembly on a given offset in the binary.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "filepath": {"type": "string", "description": "Absolute path to the binary."},
+                "offset": {"type": "integer", "description": "Byte offset to disassemble.", "default": 0},
+                "count": {"type": "integer", "description": "Number of instructions to decode.", "default": 20}
+            },
+            "required": ["filepath"],
+        },
+    },
 ]
 
 
@@ -126,11 +161,19 @@ def handle_tool_call(name: str, args: Dict[str, Any]) -> Any:
         engine = GhidraHeadlessEngine()
         return engine.decompile_binary(filepath)
 
-    elif name == "titan_generate_frida_hook":
-        bin_name = args.get("binary_name", "target")
-        target_func = args.get("target_func", "main")
-        num_args = args.get("num_args", 4)
-        return FridaHookGenerator.generate_function_hook(bin_name, target_func, num_args)
+    elif name == "titan_audit_vulnerabilities":
+        from rea_titan.core.auditor import SecurityAuditor
+        return SecurityAuditor(filepath).audit_apis()
+
+    elif name == "titan_scan_rop_gadgets":
+        from rea_titan.core.rop import ROPGadgetScanner
+        return ROPGadgetScanner(filepath).scan_gadgets()
+
+    elif name == "titan_disassemble_offset":
+        from rea_titan.core.disasm import FastDisassembler
+        off = args.get("offset", 0)
+        cnt = args.get("count", 20)
+        return FastDisassembler().disassemble_file_offset(filepath, offset=off, length=cnt * 8)
 
     raise ValueError(f"Unknown tool: {name}")
 
