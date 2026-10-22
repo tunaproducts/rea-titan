@@ -12,5 +12,6 @@ build/
 *.decoded.bin
 .rea_titan/
 tests/sample_target
+tests/crackme_portal
 tests/decompiled.json
 tests/sample_report.md
