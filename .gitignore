@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+*.gpr
+*.rep/
+*.lock
+*.decoded.bin
+.rea_titan/
+tests/sample_target
+tests/decompiled.json
+tests/sample_report.md
