@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 export PYTHONPATH="${SCRIPT_DIR}:${PYTHONPATH}"
-export JAVA_HOME="${JAVA_HOME:-/usr/lib/jvm/java-21-openjdk-amd64}"
+export JAVA_HOME="${JAVA_HOME:-/home/murat/local-jdk}"
 export PATH="${JAVA_HOME}/bin:${PATH}"
 export GHIDRA_HOME="${GHIDRA_HOME:-/home/murat/ghidra_12.1.4_PUBLIC}"
 python3 -m rea_titan.cli "$@"

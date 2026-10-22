@@ -6,7 +6,7 @@ from pathlib import Path
 
 # Base Paths
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_WORKSPACE = Path.home() / ".rea_titan"
+DEFAULT_WORKSPACE = Path.home() / "rea_titan_workspace"
 PROJECTS_DIR = DEFAULT_WORKSPACE / "projects"
 OUTPUT_DIR = DEFAULT_WORKSPACE / "output"
 

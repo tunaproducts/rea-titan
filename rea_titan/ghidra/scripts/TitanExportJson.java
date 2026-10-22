@@ -81,11 +81,12 @@ public class TitanExportJson extends GhidraScript {
 
             // References (Xrefs to this function)
             List<String> callers = new ArrayList<String>();
-            ReferenceIterator refs = func.getSymbol().getReferences(monitor);
-            while (refs.hasNext()) {
-                Reference ref = refs.next();
-                callers.add(ref.getFromAddress().toString());
-                if (callers.size() >= 10) break; // Limit callers sample
+            Reference[] refs = func.getSymbol().getReferences(monitor);
+            if (refs != null) {
+                for (Reference ref : refs) {
+                    callers.add(ref.getFromAddress().toString());
+                    if (callers.size() >= 10) break;
+                }
             }
 
             json.append("    {\n");
